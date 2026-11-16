@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title }} · starmodel</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link rel="stylesheet" href="/static/layout.css">
+  <link rel="stylesheet" href="/static/components.css">
+  <link rel="stylesheet" href="/static/print.css" media="print">
+</head>
+<body class="page-{{ page }}" data-batch="{{ batch.batch_id if batch else '' }}">
+<header class="masthead">
+  <div class="masthead__id">
+    <span class="masthead__mark">SM</span>
+    <span class="masthead__title">贴源表星型建模规格单</span>
+  </div>
+  <dl class="metaline">
+    <div><dt>批次</dt><dd>{{ batch.batch_id if batch else '—' }}</dd></div>
+    <div><dt>规则版本</dt><dd>{{ rule_version }}</dd></div>
+    <div><dt>生成</dt><dd>{{ generated_at }}</dd></div>
+    <div><dt>时区</dt><dd>{{ timezone_label }}</dd></div>
+  </dl>
+</header>
+<nav class="tabs" aria-label="章节">
+  {% for href, label, key in nav %}
+  <a href="{{ href }}"{% if key == page %} aria-current="page"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+<main class="sheet">
+  <div class="doc-head">
+    <h1>{{ page_title }}</h1>
+    <span class="doc-head__meta">{% block head_meta %}{{ batch.batch_key[:12] if batch else '—' }}{% endblock %}</span>
+  </div>
+  {% block main %}{% endblock %}
+</main>
+<footer class="colophon">
+  <span>starmodel · {{ rule_version }}</span>
+  <span>{{ batch.run_id if batch else '—' }}</span>
+</footer>
+<script src="/static/app.js"></script>
+<script src="/static/tables.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

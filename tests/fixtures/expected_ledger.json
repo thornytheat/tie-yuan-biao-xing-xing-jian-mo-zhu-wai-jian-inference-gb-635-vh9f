@@ -1,0 +1,57 @@
+{
+  "note": "贴源层样本行账，按表冻结",
+  "row_total": 50,
+  "valid": 48,
+  "null_row": 1,
+  "quarantined": 1,
+  "per_table": {
+    "odl_region": {
+      "total": 3,
+      "valid": 3,
+      "null_row": 0,
+      "quarantined": 0
+    },
+    "odl_store": {
+      "total": 6,
+      "valid": 6,
+      "null_row": 0,
+      "quarantined": 0
+    },
+    "odl_product": {
+      "total": 5,
+      "valid": 5,
+      "null_row": 0,
+      "quarantined": 0
+    },
+    "odl_member": {
+      "total": 5,
+      "valid": 5,
+      "null_row": 0,
+      "quarantined": 0
+    },
+    "odl_sale_order": {
+      "total": 8,
+      "valid": 8,
+      "null_row": 0,
+      "quarantined": 0
+    },
+    "odl_sale_order_item": {
+      "total": 10,
+      "valid": 10,
+      "null_row": 0,
+      "quarantined": 0
+    },
+    "odl_payment": {
+      "total": 6,
+      "valid": 6,
+      "null_row": 0,
+      "quarantined": 0
+    },
+    "odl_inventory_snapshot": {
+      "total": 7,
+      "valid": 5,
+      "null_row": 1,
+      "quarantined": 1
+    }
+  }
+}

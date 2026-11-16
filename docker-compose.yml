@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    image: starmodel:local
+    environment:
+      STARMODEL_DB: /data/starmodel.sqlite
+      STARMODEL_SAMPLE_DIR: /app/sample_data
+      TZ: Asia/Shanghai
+    ports:
+      - "18204:8000"
+    volumes:
+      - starmodel-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://127.0.0.1:8000/healthz', timeout=2.0)"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+
+volumes:
+  starmodel-data:

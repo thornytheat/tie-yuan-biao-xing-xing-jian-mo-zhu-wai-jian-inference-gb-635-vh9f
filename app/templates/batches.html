@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block head_meta %}批次 {{ payload.rows | length }} 条{% endblock %}
+
+{% block main %}
+<section class="section">
+  <h2>批次历史</h2>
+  <div class="wide">
+    <table class="spec" data-sortable>
+      <caption>同一输入摘要重跑复用同一批次</caption>
+      <thead>
+        <tr><th>批次</th><th>状态</th><th>输入摘要</th><th class="num">列</th><th class="num">对象</th><th class="num">隔离</th><th>开始</th><th>run_id</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.rows %}
+        <tr>
+          <td class="mono"><a href="/batches?batch_id={{ row.batch_id }}">{{ row.batch_id }}</a></td>
+          <td>
+            <span class="flag" data-tone="{{ 'ok' if row.status == 'done' else ('warn' if row.status == 'running' else 'bad') }}">{{ row.status_label }}</span>
+          </td>
+          <td class="mono">{{ row.input_digest }}</td>
+          <td class="num">{{ row.counts.columns_meta or 0 }}</td>
+          <td class="num">{{ row.counts.star_objects or 0 }}</td>
+          <td class="num">{{ row.counts.quarantine or 0 }}</td>
+          <td class="mono">{{ row.created_at }}</td>
+          <td class="mono"><span class="truncate" title="{{ row.run_id }}">{{ row.run_id }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty">还没有批次。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if payload.accounts %}
+<section class="section">
+  <h2>四账核对</h2>
+  <div class="wide">
+    <table class="spec">
+      <thead><tr><th>账</th><th class="num">总数</th><th>构成</th><th>自洽</th></tr></thead>
+      <tbody>
+        {% for row in payload.accounts.rows_page %}
+        <tr>
+          <td>{{ row.id }} {{ row.name }}</td>
+          <td class="num">{{ row.expected }}</td>
+          <td class="mono">{{ row.parts }}</td>
+          <td>
+            <span class="flag" data-tone="{{ 'ok' if row.balanced else 'bad' }}">{{ '平' if row.balanced else '差' }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="totalbar">
+    <span>金额合计 <b>{{ payload.accounts.metric_total | dec }}</b> {{ money_unit }}</span>
+    <span>四账自洽 <b>{{ '是' if payload.accounts.balanced else '否' }}</b></span>
+  </div>
+</section>
+
+<section class="section">
+  <h2>行账明细</h2>
+  <div class="wide">
+    <table class="spec dense" data-sortable>
+      <thead>
+        <tr><th>表</th><th class="num">总行</th><th class="num">有效</th><th class="num">空值行</th><th class="num">隔离</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.ledger %}
+        <tr>
+          <td class="mono">{{ row.table_name }}</td>
+          <td class="num">{{ row.total }}</td>
+          <td class="num">{{ row.valid }}</td>
+          <td class="num">{{ row.null_row }}</td>
+          <td class="num">{{ row.quarantined }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">还没有行账。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>运行清单</h2>
+  <dl class="pairs">
+    <div><dt>run_id</dt><dd>{{ payload.manifest.run_id or '—' }}</dd></div>
+    <div><dt>批次键</dt><dd>{{ payload.manifest.batch_key or '—' }}</dd></div>
+    <div><dt>输入摘要</dt><dd>{{ payload.manifest.input_digest or '—' }}</dd></div>
+    <div><dt>规则版本</dt><dd>{{ payload.manifest.rule_version or rule_version }}</dd></div>
+    <div><dt>样本上限</dt><dd>{{ payload.manifest.params.sample_cap if payload.manifest.params else '—' }}</dd></div>
+    <div><dt>耗时 ms</dt><dd>{{ payload.manifest.elapsed_ms or '—' }}</dd></div>
+  </dl>
+</section>
+{% else %}
+<section class="section">
+  <h2>四账核对</h2>
+  <p class="empty">还没有批次。</p>
+</section>
+{% endif %}
+{% endblock %}

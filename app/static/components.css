@@ -1,0 +1,301 @@
+/* components.css — 表格、状态、脚注、表单、导入按钮。表格只有横线，没有竖线。 */
+
+/* 表格：细横线，数字右对齐等宽 */
+table.spec {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  margin: 0.2rem 0 0;
+}
+
+table.spec caption {
+  text-align: left;
+  font-family: var(--font-num);
+  font-size: var(--fs-note);
+  color: var(--ink-muted);
+  padding-bottom: 0.25rem;
+}
+
+table.spec thead th {
+  text-align: left;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  color: var(--ink-soft);
+  border-bottom: var(--rule-strong);
+  padding: 0.32rem 0.5rem;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  z-index: 2;
+}
+
+table.spec tbody td {
+  border-bottom: var(--rule);
+  padding: 0.3rem 0.5rem;
+  vertical-align: top;
+}
+
+table.spec tbody tr:hover td {
+  background: var(--paper-edge);
+}
+
+.dense thead th {
+  font-size: var(--fs-note);
+}
+
+.wide {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+truncate,
+.truncate {
+  display: inline-block;
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+/* 状态：文字标记 + 颜色，不用彩色徽章 */
+.flag {
+  font-family: var(--font-num);
+  font-size: var(--fs-note);
+  white-space: nowrap;
+}
+
+.flag::before {
+  content: "▸ ";
+  color: var(--ink-muted);
+}
+
+.flag[data-tone="ok"] {
+  color: var(--ok);
+}
+
+.flag[data-tone="ok"]::before {
+  content: "✓ ";
+  color: var(--ok);
+}
+
+.flag[data-tone="warn"] {
+  color: var(--warn);
+}
+
+.flag[data-tone="warn"]::before {
+  content: "! ";
+  color: var(--warn);
+}
+
+.flag[data-tone="bad"] {
+  color: var(--bad);
+}
+
+.flag[data-tone="bad"]::before {
+  content: "✕ ";
+  color: var(--bad);
+}
+
+.flag[data-tone="info"] {
+  color: var(--info);
+}
+
+/* 数值条：合计条固定样式，不用卡片 */
+.totalbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem var(--gap-wide);
+  border-top: var(--rule-strong);
+  border-bottom: var(--rule);
+  padding: 0.4rem 0;
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+}
+
+.totalbar span b {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* 脚注：上标编号 + 末尾注文 */
+sup.fn {
+  font-family: var(--font-num);
+  font-size: 0.68em;
+  color: var(--accent);
+  vertical-align: super;
+  line-height: 0;
+}
+
+ol.footnotes {
+  margin: 0.4rem 0 0;
+  padding-left: 1.4rem;
+  font-size: var(--fs-note);
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+ol.footnotes li {
+  font-family: var(--font-num);
+}
+
+/* 表单：就地提示，保留已填内容 */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--gap);
+  padding: 0.6rem 0;
+  border-bottom: var(--rule);
+}
+
+.field {
+  display: grid;
+  gap: 0.15rem;
+  font-size: var(--fs-note);
+  color: var(--ink-muted);
+}
+
+.field select,
+.field input {
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--hairline) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.45rem;
+  min-width: 9rem;
+}
+
+.field input:focus,
+.field select:focus,
+button:focus-visible,
+.tabs a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button {
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: var(--hairline) solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.34rem 0.9rem;
+  cursor: pointer;
+  transition: background-color var(--motion) linear;
+}
+
+button:hover {
+  background: #8a4c24;
+}
+
+button[disabled] {
+  background: var(--paper-edge);
+  color: var(--ink-muted);
+  border-color: var(--line-strong);
+  cursor: progress;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--accent);
+}
+
+button.ghost:hover {
+  background: var(--accent-wash);
+}
+
+.notice {
+  font-size: var(--fs-small);
+  padding: 0.35rem 0 0.35rem 0.6rem;
+  border-left: var(--rule-strong);
+  margin: 0.5rem 0 0;
+  color: var(--ink-soft);
+}
+
+.notice[data-tone="bad"] {
+  border-left-color: var(--bad);
+  color: var(--bad);
+}
+
+.notice[data-tone="ok"] {
+  border-left-color: var(--ok);
+  color: var(--ok);
+}
+
+/* 空态：只有一句 */
+.empty {
+  color: var(--ink-muted);
+  font-size: var(--fs-small);
+  padding: 0.8rem 0;
+}
+
+/* 定义列表：键值成对，用于规则与阈值 */
+dl.pairs {
+  margin: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+dl.pairs > div {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--gap);
+  border-bottom: var(--rule);
+  padding: 0.24rem 0;
+  font-size: var(--fs-small);
+}
+
+dl.pairs dt {
+  color: var(--ink-muted);
+}
+
+dl.pairs dd {
+  margin: 0;
+  font-family: var(--font-num);
+}
+
+.tag {
+  font-family: var(--font-num);
+  font-size: var(--fs-note);
+  color: var(--ink-soft);
+  border: var(--hairline) solid var(--line-strong);
+  padding: 0 0.3rem;
+}
+
+.tag[data-tone="accent"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.hint {
+  font-size: var(--fs-note);
+  color: var(--ink-muted);
+  font-family: var(--font-num);
+}
+
+.mono {
+  font-family: var(--font-num);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

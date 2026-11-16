@@ -1,0 +1,56 @@
+{
+  "partial_null_rows": [
+    {"a": "SO1", "b": null},
+    {"a": "SO1", "b": null},
+    {"a": "SO2", "b": "1"}
+  ],
+  "all_null_key_rows": [
+    {"a": null, "b": null},
+    {"a": null, "b": null}
+  ],
+  "fold_rows": [
+    {"code": "APP", "old": "app"},
+    {"code": "0012", "old": null},
+    {"code": "0034", "old": null}
+  ],
+  "synthetic_bundle": {
+    "batch": {"batch_id": "SM20261115000000", "batch_key": "synthetic-key-0001"},
+    "tables": [
+      {"table_name": "t_demo", "sample_rows": 3, "column_count": 2, "declared_pk": ["a", "b"]},
+      {"table_name": "t_child", "sample_rows": 2, "column_count": 2, "declared_pk": ["id"]}
+    ],
+    "columns": [
+      {"table_name": "t_demo", "column_name": "a"},
+      {"table_name": "t_demo", "column_name": "b"},
+      {"table_name": "t_child", "column_name": "id"},
+      {"table_name": "t_child", "column_name": "demo_id"}
+    ],
+    "keys": [
+      {"kind": "pk", "child_table": "t_child", "child_columns": ["id"],
+       "parent_table": null, "parent_columns": [], "declared": true,
+       "status": "confirmed", "inclusion": null, "cardinality_ratio": null,
+       "reason_code": "K_PK_CONFIRMED", "evidence": {}}
+    ]
+  },
+  "synthetic_changes": [
+    {"kind": "dedupe_rows", "table": "t_demo", "columns": ["a", "b"]},
+    {"kind": "add_unique", "table": "t_demo", "columns": ["a", "b"]},
+    {"kind": "add_fk", "table": "t_child", "columns": ["demo_id"],
+     "target": {"table": "t_demo", "columns": ["a"]}}
+  ],
+  "synthetic_empty_changes": [
+    {"kind": "add_unique", "table": "t_empty", "columns": ["k"]}
+  ],
+  "synthetic_registry": {
+    "name": "synthetic.csv",
+    "digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "total": 1,
+    "dups": 0,
+    "errors": [],
+    "rows": [
+      {"object_id": "SYN-001", "object_type": "view", "object_name": "v_demo",
+       "owner": "数据平台", "criticality": "P1", "ref_table": "t_demo",
+       "ref_column": "a", "ref_mode": "column", "line": 2}
+    ]
+  }
+}

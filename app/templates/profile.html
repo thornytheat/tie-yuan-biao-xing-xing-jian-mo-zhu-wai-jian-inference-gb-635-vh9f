@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block head_meta %}{{ payload.column_total }} 列 · 采纳 {{ payload.adopted }}{% endblock %}
+
+{% block main %}
+<section class="section">
+  <h2>列剖析</h2>
+  <div class="toolbar">
+    <label class="field">表
+      <select name="table" data-filter-target="profile">
+        <option value="">全部</option>
+        {% for name in payload.tables %}
+        <option value="{{ name }}"{% if payload.filters.table_name == name %} selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">处置
+      <select name="disposition" data-filter-target="profile">
+        {% for key, label in disposition_labels.items() %}
+        <option value="{{ key }}"{% if payload.filters.disposition == key %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <a class="tag" data-tone="accent" href="/profile">重置</a>
+  </div>
+  <div class="totalbar">
+    <span>列 <b>{{ payload.column_total }}</b></span>
+    <span>采纳 <b>{{ payload.adopted }}</b></span>
+    <span>待定 <b>{{ payload.pending }}</b></span>
+    <span>拒绝 <b>{{ payload.rejected }}</b></span>
+    <span>整列空 <b>{{ payload.all_null }}</b></span>
+  </div>
+  <div class="wide" data-filter-scope="profile">
+    <table class="spec dense" data-sortable>
+      <caption>空值率 = （空串 + 哨兵）÷ 样本行数</caption>
+      <thead>
+        <tr>
+          <th>表</th><th>列</th><th>声明</th><th>推断</th><th>角色</th>
+          <th class="num">样本行</th><th class="num">空值</th><th class="num">空值率</th>
+          <th class="num">去重</th><th class="num">唯一率</th><th>处置</th><th>原因码</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in payload.rows %}
+        <tr>
+          <td class="mono">{{ row.table_name }}</td>
+          <td class="mono">{{ row.column_name }}</td>
+          <td class="mono">{{ row.ddl_type }}</td>
+          <td class="nowrap">{{ row.kind }}</td>
+          <td class="nowrap">{{ row.measurement }}</td>
+          <td class="num">{{ row.sample_rows }}</td>
+          <td class="num">{{ row.null_total }}</td>
+          <td class="num">{{ row.null_rate | pct }}</td>
+          <td class="num">{{ row.distinct_count }}</td>
+          <td class="num">{{ row.unique_rate | rate }}</td>
+          <td>
+            <span class="flag"
+              data-tone="{{ 'ok' if row.disposition == 'adopted' else ('warn' if row.disposition == 'pending' else 'bad') }}">{{ row.disposition | disposition }}</span>
+          </td>
+          <td class="mono">
+            <span class="truncate" title="{{ row.reason_codes | join('、') }}">{{ row.reason_codes | join('、') or '—' }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="12" class="empty">还没有列剖析结果。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>度量合计</h2>
+  <div class="wide">
+    <table class="spec">
+      <caption>只统计判为度量的列，Decimal 两位小数</caption>
+      <thead>
+        <tr><th>表</th><th>列</th><th>类型</th><th class="num">合计</th><th>单位</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.rows %}
+        {% if row.metric_total is not none and row.is_metric %}
+        <tr>
+          <td class="mono">{{ row.table_name }}</td>
+          <td class="mono">{{ row.column_name }}</td>
+          <td class="nowrap">{{ row.kind }}</td>
+          <td class="num">{{ row.metric_total | dec }}</td>
+          <td>{{ money_unit if row.kind == 'decimal' else qty_unit }}</td>
+        </tr>
+        {% endif %}
+        {% else %}
+        <tr><td colspan="5" class="empty">还没有度量列。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

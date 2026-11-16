@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block head_meta %}事实 {{ payload.facts | length }} · 维 {{ payload.dims | length }}{% endblock %}
+
+{% block main %}
+<section class="section">
+  <h2>星型对象</h2>
+  <div class="totalbar">
+    <span>事实 <b>{{ payload.facts | length }}</b></span>
+    <span>维度 <b>{{ payload.dims | length }}</b></span>
+    <span>待定 <b>{{ payload.pending | length }}</b></span>
+    {% if payload.accounts %}
+    <span>金额合计 <b>{{ payload.accounts.metric_total | dec }}</b> {{ money_unit }}</span>
+    {% endif %}
+  </div>
+  <div class="wide">
+    <table class="spec" data-sortable>
+      <caption>事实 = 含度量且外键 ≥ 2；被引用的表优先作维度</caption>
+      <thead>
+        <tr><th>表</th><th>角色</th><th>SCD</th><th class="num">度量</th><th class="num">外键</th><th>退化维度</th><th>依据</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.facts + payload.dims + payload.pending %}
+        <tr>
+          <td class="mono">{{ row.table_name }}</td>
+          <td>
+            <span class="flag" data-tone="{{ 'ok' if row.role == 'fact' else ('info' if row.role == 'dim' else 'warn') }}">{{ row.role_label }}</span>
+          </td>
+          <td>{{ row.scd_label }}</td>
+          <td class="num">{{ row.metric_columns | length }}</td>
+          <td class="num">{{ row.fk_count }}</td>
+          <td class="mono">{{ row.degenerate | map(attribute='column') | join('、') or '—' }}</td>
+          <td class="mono">{{ row.role_note }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty">还没有星型建议。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="split">
+  <div class="section">
+    <h2>事实表度量</h2>
+    <div class="wide">
+      <table class="spec dense">
+        <thead><tr><th>表</th><th>度量列</th><th>单位</th></tr></thead>
+        <tbody>
+          {% for row in payload.facts %}
+            {% for metric in row.metric_columns %}
+            <tr>
+              <td class="mono">{{ row.table_name }}</td>
+              <td class="mono">{{ metric.column }}</td>
+              <td>{{ money_unit if metric.kind == 'decimal' else qty_unit }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+          <tr><td colspan="3" class="empty">还没有事实表。</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="section">
+    <h2>维度 SCD</h2>
+    <div class="wide">
+      <table class="spec dense">
+        <thead><tr><th>表</th><th>类型</th><th>依据</th></tr></thead>
+        <tbody>
+          {% for row in payload.dims %}
+          <tr>
+            <td class="mono">{{ row.table_name }}</td>
+            <td>{{ row.scd_label }}</td>
+            <td class="mono">{{ row.scd_note }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="empty">还没有维度表。</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% if payload.notes %}
+<section class="section">
+  <h2>注</h2>
+  <ol class="footnotes">
+    {% for note in payload.notes %}
+    <li class="fn-item" id="fn-{{ loop.index }}">{{ note }}</li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}
+{% endblock %}

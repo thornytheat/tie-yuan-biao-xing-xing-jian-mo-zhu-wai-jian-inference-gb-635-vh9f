@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block head_meta %}{{ payload.manifest.input_digest[:12] if payload.manifest else '—' }}{% endblock %}
+
+{% block main %}
+<section class="section">
+  <h2>输入清单</h2>
+  <div class="toolbar">
+    <label class="field">来源
+      <select name="source">
+        <option value="sample">sample_data</option>
+      </select>
+    </label>
+    <label class="field">样本上限
+      <input name="sample_cap" type="number" min="1" max="5000" value="500">
+    </label>
+    <button type="button" data-action="import">运行接入</button>
+  </div>
+  <p class="notice" data-notice hidden></p>
+  <div class="wide">
+    <table class="spec">
+      <caption>{{ payload.inputs | length }} 个输入文件</caption>
+      <thead>
+        <tr><th>文件</th><th>用途</th><th>编码</th><th class="num">字节</th><th>sha256</th></tr>
+      </thead>
+      <tbody>
+        {% for item in payload.inputs %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.role }}</td>
+          <td class="mono">{{ item.encoding }}</td>
+          <td class="num">{{ item["bytes"] }}</td>
+          <td class="mono"><span class="truncate" title="{{ item.sha256 }}">{{ item.sha256[:16] }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">还没有输入文件。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>贴源表</h2>
+  <div class="wide">
+    <table class="spec" data-sortable>
+      <caption>{{ payload.tables | length }} 张表 · {{ payload.section_count }} 个分段</caption>
+      <thead>
+        <tr><th>表</th><th class="num">列</th><th class="num">样本行</th><th>声明主键</th><th class="num">声明外键</th><th>表头行</th></tr>
+      </thead>
+      <tbody>
+        {% for table in payload.tables %}
+        <tr>
+          <td class="mono">{{ table.table_name }}</td>
+          <td class="num">{{ table.column_count }}</td>
+          <td class="num">{{ table.sample_rows }}</td>
+          <td class="mono">{{ table.declared_pk | join('、') if table.declared_pk else '—' }}</td>
+          <td class="num">{{ table.declared_refs }}</td>
+          <td class="num">{{ table.header_line or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">还没有贴源表。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if payload.accounts %}
+<section class="section">
+  <h2>四账</h2>
+  <div class="totalbar">
+    <span>列 <b>{{ payload.accounts.columns.total }}</b></span>
+    <span>样本行 <b>{{ payload.accounts.rows.total }}</b></span>
+    <span>声明外键 <b>{{ payload.accounts.references.declared }}</b></span>
+    <span>对象 <b>{{ payload.accounts.objects.total }}</b></span>
+    <span>金额合计 <b>{{ payload.accounts.metric_total | dec }}</b> {{ money_unit }}</span>
+    <span>自洽 <b>{{ '是' if payload.accounts.balanced else '否' }}</b></span>
+  </div>
+  <table class="spec">
+    <caption>阶段计数</caption>
+    <thead>
+      <tr><th>阶段</th><th class="num">进</th><th class="num">出</th><th class="num">隔离</th><th class="num">耗时 ms</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      {% for stage in stages %}
+      <tr>
+        <td>{{ stage.label }}</td>
+        <td class="num">{{ stage.in_count }}</td>
+        <td class="num">{{ stage.out_count }}</td>
+        <td class="num">{{ stage.quarantine_count }}</td>
+        <td class="num">{{ stage.elapsed_ms }}</td>
+        <td class="hint">{{ stage.note or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty">还没有阶段记录。</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <h2>原因码分布</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ payload.quarantine_preview | length }} / {{ payload.distribution | sum(attribute='count') }} 行证据</caption>
+      <thead>
+        <tr><th>原因码</th><th>结论</th><th>级别</th><th class="num">条数</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.distribution %}
+        <tr>
+          <td class="mono">{{ row.code }}</td>
+          <td>{{ row.title }}</td>
+          <td><span class="flag" data-tone="{{ 'bad' if row.level == 'error' else ('warn' if row.level == 'warn' else 'info') }}">{{ level_labels[row.level] }}</span></td>
+          <td class="num">{{ row.count }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="empty">还没有隔离行。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <ol class="footnotes">
+    {% for row in payload.quarantine_preview %}
+    <li>{{ row.code }} {{ row.table_name or '—' }}.{{ row.column_name or '—' }} {{ row.detail or '' }}</li>
+    {% endfor %}
+  </ol>
+</section>
+{% else %}
+<section class="section">
+  <h2>四账</h2>
+  <p class="empty">还没有批次。</p>
+</section>
+{% endif %}
+{% endblock %}

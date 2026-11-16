@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block head_meta %}{{ document.total_rows if document else 0 }} 行{% endblock %}
+
+{% block main %}
+{% if document %}
+<section class="section">
+  <h2>甲 四账</h2>
+  <div class="totalbar">
+    <span>列 <b>{{ document.accounts.columns.total }}</b></span>
+    <span>样本行 <b>{{ document.accounts.rows.total }}</b></span>
+    <span>声明外键 <b>{{ document.accounts.references.declared }}</b></span>
+    <span>对象 <b>{{ document.accounts.objects.total }}</b></span>
+    <span>金额合计 <b>{{ document.accounts.metric_total | dec }}</b> {{ money_unit }}</span>
+  </div>
+  <table class="spec dense">
+    <thead><tr><th>账</th><th class="num">总数</th><th>构成</th><th>自洽</th></tr></thead>
+    <tbody>
+      {% for row in document.account_rows %}
+      <tr>
+        <td>{{ row.id }} {{ row.name }}</td>
+        <td class="num">{{ row.expected }}</td>
+        <td class="mono">{{ row.parts }}</td>
+        <td><span class="flag" data-tone="{{ 'ok' if row.balanced else 'bad' }}">{{ '平' if row.balanced else '差' }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <h2>乙 列规格</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>采纳 {{ document.adopted_columns | length }} 列</caption>
+      <thead>
+        <tr><th>表</th><th>列</th><th>声明</th><th>推断</th><th>可空</th><th class="num">空值率</th><th class="num">唯一率</th><th>角色</th><th>原因码</th></tr>
+      </thead>
+      <tbody>
+        {% for row in document.columns %}
+        <tr>
+          <td class="mono">{{ row.table_name }}</td>
+          <td class="mono">{{ row.column_name }}</td>
+          <td class="mono">{{ row.ddl_type }}</td>
+          <td class="nowrap">{{ row.kind }}</td>
+          <td class="nowrap">{{ row.nullable }}</td>
+          <td class="num">{{ row.null_rate | pct }}</td>
+          <td class="num">{{ row.unique_rate | rate }}</td>
+          <td class="nowrap">{{ row.role }}</td>
+          <td class="mono">{{ row.codes | join('、') or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>丙 键与星型</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ document.key_rows | length }} 条键结论 · {{ document.objects | length }} 个对象</caption>
+      <thead>
+        <tr><th>类</th><th>子表</th><th>子列</th><th>父表</th><th>来源</th><th>状态</th><th class="num">包含度</th><th>依据</th></tr>
+      </thead>
+      <tbody>
+        {% for row in document.key_rows %}
+        <tr>
+          <td>{{ row.kind_label }}</td>
+          <td class="mono">{{ row.child_table }}</td>
+          <td class="mono">{{ row.child_text }}</td>
+          <td class="mono">{{ row.parent_table }}</td>
+          <td class="nowrap">{{ row.declared }}</td>
+          <td class="nowrap">{{ row.status_label }}</td>
+          <td class="num">{{ row.inclusion | rate }}</td>
+          <td class="mono">{{ row.note }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="wide">
+    <table class="spec dense">
+      <thead>
+        <tr><th>表</th><th>角色</th><th>SCD</th><th class="num">度量</th><th class="num">外键</th><th>退化维度</th><th>依据</th></tr>
+      </thead>
+      <tbody>
+        {% for row in document.objects %}
+        <tr>
+          <td class="mono">{{ row.table_name }}</td>
+          <td class="nowrap">{{ row.role_label }}</td>
+          <td class="nowrap">{{ row.scd_label }}</td>
+          <td class="num">{{ row.metric_count }}</td>
+          <td class="num">{{ row.fk_count }}</td>
+          <td class="mono">{{ row.degenerate or '—' }}</td>
+          <td>{{ row.reason_label }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if document.other_columns %}
+<section class="section">
+  <h2>丁 未采纳列</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <thead><tr><th>表</th><th>列</th><th>处置</th><th class="num">空值率</th><th>原因码</th></tr></thead>
+      <tbody>
+        {% for row in document.other_columns %}
+        <tr>
+          <td class="mono">{{ row.table_name }}</td>
+          <td class="mono">{{ row.column_name }}</td>
+          <td>{{ row.disposition_label }}</td>
+          <td class="num">{{ row.null_rate | pct }}</td>
+          <td class="mono">{{ row.codes | join('、') or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <h2>戊 注</h2>
+  <ol class="footnotes">
+    {% for note in document.footnotes %}
+    <li class="fn-item" id="fn-{{ loop.index }}">{{ note }}</li>
+    {% endfor %}
+  </ol>
+  <div class="toolbar">
+    <button type="button" data-action="print">打印</button>
+    <a class="tag" data-export="/api/spec/export.csv" href="/api/spec/export.csv">列规格 CSV</a>
+    <a class="tag" data-export="/api/spec/evidence.csv" href="/api/spec/evidence.csv">证据 CSV</a>
+    <a class="tag" data-export="/api/spec/manifest.json" href="/api/spec/manifest.json">运行清单 JSON</a>
+  </div>
+</section>
+{% else %}
+<section class="section">
+  <h2>规格单</h2>
+  <p class="empty">还没有批次。</p>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}<script src="/static/spec.js"></script>{% endblock %}

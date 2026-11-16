@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block head_meta %}变更 {{ payload.changes | length }} · 阻断 {{ payload.blocked | length }}{% endblock %}
+
+{% block main %}
+{% if payload %}
+<section class="section">
+  <h2>总览</h2>
+  <div class="totalbar">
+    <span>变更 <b>{{ payload.summary.changes }}</b></span>
+    <span>可执行 <b>{{ payload.summary.executable }}</b></span>
+    <span>阻断 <b>{{ payload.summary.blocked }}</b></span>
+    <span>下游对象 <b>{{ payload.summary.objects }}</b></span>
+    <span>中断 <b>{{ payload.summary.break }}</b></span>
+    <span>自洽 <b>{{ '是' if payload.summary.balanced else '否' }}</b></span>
+  </div>
+</section>
+
+<section class="section">
+  <h2>变更清单</h2>
+  <div class="wide">
+    <table class="spec" data-sortable>
+      <caption>{{ payload.registry.total }} 个下游对象</caption>
+      <thead>
+        <tr><th>变更</th><th>表</th><th>列</th><th>阶段</th><th class="num">下游</th><th>级别</th><th>阻断</th></tr>
+      </thead>
+      <tbody>
+        {% for item in payload.changes %}
+        <tr>
+          <td>{{ item.change.label }}</td>
+          <td class="mono">{{ item.change.table }}</td>
+          <td class="mono">{{ item.change.columns | join('、') }}</td>
+          <td>{{ item.change.phase_label }}</td>
+          <td class="num">{{ item.objects }}</td>
+          <td>
+            {% if item.level %}
+            <span class="flag" data-tone="{{ 'bad' if item.level == 'break' else ('warn' if item.level == 'review' else 'info') }}">{{ impact_levels.get(item.level, item.level) }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="mono">{{ item.blocked.code if item.blocked else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty">还没有变更建议。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>迁移顺序</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ payload.order | length }} 步</caption>
+      <thead><tr><th class="num">序</th><th>阶段</th><th>变更</th><th>表</th><th>列</th></tr></thead>
+      <tbody>
+        {% for row in payload.order %}
+        <tr>
+          <td class="num">{{ row.position }}</td>
+          <td>{{ row.phase_label }}</td>
+          <td>{{ row.label }}</td>
+          <td class="mono">{{ row.table }}</td>
+          <td class="mono">{{ row.columns | join('、') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">没有可执行变更。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>阻断</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ payload.blocked | length }} 条</caption>
+      <thead><tr><th>变更</th><th>原因码</th><th>说明</th></tr></thead>
+      <tbody>
+        {% for row in payload.blocked %}
+        <tr>
+          <td class="mono">{{ row.change_id.split(':')[0] }}</td>
+          <td class="mono">{{ row.code }}</td>
+          <td>{{ row.reason }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="empty">没有阻断项。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>下游影响</h2>
+  <div class="wide">
+    <table class="spec" data-sortable>
+      <caption>{{ payload.summary.review }} 条待核对</caption>
+      <thead>
+        <tr><th>对象</th><th>类型</th><th>负责人</th><th>优先级</th><th>引用</th><th>影响</th><th>依据</th></tr>
+      </thead>
+      <tbody>
+        {% for item in payload.changes %}
+          {% for row in item.rows %}
+          <tr>
+            <td class="mono">{{ row.object_id }}</td>
+            <td>{{ row.object_type }}</td>
+            <td>{{ row.owner }}</td>
+            <td>{{ row.criticality }}</td>
+            <td class="mono">{{ row.ref }}</td>
+            <td>
+              <span class="flag" data-tone="{{ 'bad' if row.level == 'break' else ('warn' if row.level == 'review' else 'info') }}">{{ impact_levels.get(row.level, row.level) }}</span>
+            </td>
+            <td>{{ row.note }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+        <tr><td colspan="7" class="empty">还没有下游对象。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>待核对</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ payload.unknown | length }} 条整表引用 · {{ payload.pseudo | length }} 条大小写</caption>
+      <thead><tr><th>对象</th><th>引用</th><th>依据</th></tr></thead>
+      <tbody>
+        {% for row in payload.unknown + payload.pseudo %}
+        <tr>
+          <td class="mono">{{ row.object_id }}</td>
+          <td class="mono">{{ row.ref }}</td>
+          <td>{{ row.note }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="empty">没有待核对项。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>回滚</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ payload.rollback | length }} 条 · 逆序</caption>
+      <thead><tr><th class="num">序</th><th>变更</th><th>表</th><th>可逆</th><th>动作</th></tr></thead>
+      <tbody>
+        {% for row in payload.rollback %}
+        <tr>
+          <td class="num">{{ row.position }}</td>
+          <td>{{ row.label }}</td>
+          <td class="mono">{{ row.table }}</td>
+          <td><span class="flag" data-tone="{{ 'ok' if row.reversible else 'warn' }}">{{ '可' if row.reversible else '否' }}</span></td>
+          <td class="mono">{{ row.sql }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">没有可回滚项。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>试算</h2>
+  <div class="toolbar">
+    <label class="field">变更
+      <select name="kind">
+        {% for key, spec in kinds.items() %}
+        <option value="{{ key }}">{{ spec.label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">表
+      <input name="table" value="{{ payload.changes[0].change.table if payload.changes else 'odl_sale_order' }}">
+    </label>
+    <label class="field">列
+      <input name="columns" value="order_amount">
+    </label>
+    <button type="button" data-action="propose">试算</button>
+  </div>
+  <p class="notice" data-notice hidden></p>
+  <p class="hint" data-propose hidden></p>
+</section>
+
+<section class="section">
+  <h2>注</h2>
+  <ol class="footnotes">
+    {% for note in payload.notes %}
+    <li class="fn-item">{{ note }}</li>
+    {% endfor %}
+  </ol>
+</section>
+{% else %}
+<p class="empty">还没有批次。</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/impact.js"></script>
+{% endblock %}

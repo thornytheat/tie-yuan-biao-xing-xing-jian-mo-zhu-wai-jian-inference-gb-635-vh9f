@@ -1,0 +1,70 @@
+/* print.css — 打印时隐藏导航与按钮，显示页码与页边距。 */
+
+@page {
+  size: A4;
+  margin: 16mm 14mm 18mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 10.5pt;
+  }
+
+  .tabs,
+  .toolbar,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  .masthead {
+    border-bottom: 2px solid #000;
+    padding-top: 0;
+  }
+
+  .sheet {
+    padding-top: 0.6rem;
+    max-width: none;
+  }
+
+  table.spec thead th {
+    position: static;
+    background: #fff;
+  }
+
+  table.spec tbody tr {
+    break-inside: avoid;
+  }
+
+  .section {
+    break-inside: auto;
+    margin-bottom: 1.1rem;
+  }
+
+  .section > h2 {
+    break-after: avoid;
+  }
+
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+
+  .footnotes,
+  .colophon {
+    color: #222;
+  }
+
+  /* 页码：正文末尾的落款里出「第 N 页」 */
+  .colophon::after {
+    content: "第 " counter(page) " 页 / 共 " counter(pages) " 页";
+    font-family: ui-monospace, monospace;
+  }
+
+  .totalbar {
+    border-top: 2px solid #000;
+  }
+}

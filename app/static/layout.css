@@ -1,0 +1,197 @@
+/* layout.css — 单栏文档流：报头 → 章节导航 → 正文栏 → 落款。 */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  padding: 0 0 4rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 报头：左上角标记 + 右侧四格元信息 */
+.masthead {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--pad) var(--pad) 0.6rem;
+  border-bottom: var(--rule-strong);
+}
+
+.masthead__id {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.masthead__mark {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  border: var(--hairline) solid var(--accent);
+  padding: 0.1rem 0.35rem;
+}
+
+.masthead__title {
+  font-family: var(--font-doc);
+  font-size: 1.45rem;
+  letter-spacing: 0.02em;
+}
+
+.metaline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.2rem var(--gap-wide);
+  margin: 0.55rem 0 0;
+  padding: 0;
+}
+
+.metaline > div {
+  display: flex;
+  gap: 0.4rem;
+  font-size: var(--fs-note);
+  color: var(--ink-muted);
+}
+
+.metaline dt {
+  flex: none;
+}
+
+.metaline dd {
+  margin: 0;
+  font-family: var(--font-num);
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+/* 章节导航：横排，像目录而不是侧栏 */
+.tabs {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: var(--rule);
+}
+
+.tabs a {
+  font-size: var(--fs-small);
+  color: var(--ink-muted);
+  text-decoration: none;
+  padding: 0.5rem 0.9rem 0.45rem;
+  border-bottom: var(--rule-strong);
+  border-bottom-color: transparent;
+  transition: color var(--motion) linear, border-color var(--motion) linear;
+}
+
+.tabs a:hover {
+  color: var(--accent);
+}
+
+.tabs a[aria-current="page"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* 正文栏：一份文档的宽度 */
+.sheet {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--gap-wide) var(--pad) 0;
+}
+
+.doc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  border-bottom: var(--rule);
+  padding-bottom: 0.35rem;
+  margin-bottom: var(--gap-wide);
+}
+
+.doc-head h1 {
+  font-family: var(--font-doc);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.doc-head .doc-head__meta {
+  font-family: var(--font-num);
+  font-size: var(--fs-note);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.section {
+  margin: 0 0 var(--gap-wide);
+}
+
+.section > h2 {
+  font-family: var(--font-doc);
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: var(--rule);
+  letter-spacing: 0.02em;
+}
+
+/* 两栏只在个别块用，主体仍是单栏 */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--gap-wide);
+}
+
+.stack {
+  display: grid;
+  gap: var(--gap);
+}
+
+.colophon {
+  max-width: var(--measure);
+  margin: var(--gap-wide) auto 0;
+  padding: 0.6rem var(--pad) 0;
+  border-top: var(--rule);
+  font-family: var(--font-num);
+  font-size: var(--fs-note);
+  color: var(--ink-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+@media (max-width: 720px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .metalines,
+  .metaline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+}

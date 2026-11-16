@@ -1,0 +1,66 @@
+{
+  "registry": {
+    "name": "downstream_map.csv",
+    "total": 19,
+    "dups": 1,
+    "error_codes": ["M_REGISTRY_DUP_ROW"],
+    "error_lines": [3]
+  },
+  "summary": {
+    "changes": 9,
+    "executable": 8,
+    "blocked": 1,
+    "cycles": 0,
+    "objects": 8,
+    "break": 1,
+    "review": 9,
+    "info": 1,
+    "unknown": 3,
+    "pseudo": 2,
+    "irreversible": 2,
+    "registry_rows": 19,
+    "registry_dups": 1,
+    "balanced": true
+  },
+  "order": [
+    "dedupe_rows:odl_inventory_snapshot:snapshot_date|store_code|product_code",
+    "fix_orphan:odl_store:region_code",
+    "alter_type:odl_member:join_date",
+    "alter_type:odl_payment:order_id",
+    "alter_type:odl_sale_order:order_id",
+    "alter_type:odl_member:points",
+    "add_unique:odl_inventory_snapshot:snapshot_date|store_code|product_code",
+    "add_fk:odl_payment:order_id"
+  ],
+  "rollback": [
+    {"position": 1, "change_id": "add_fk:odl_payment:order_id", "reversible": true, "needs_snapshot": false},
+    {"position": 2, "change_id": "add_unique:odl_inventory_snapshot:snapshot_date|store_code|product_code", "reversible": true, "needs_snapshot": false},
+    {"position": 3, "change_id": "alter_type:odl_member:points", "reversible": true, "needs_snapshot": true},
+    {"position": 4, "change_id": "alter_type:odl_sale_order:order_id", "reversible": true, "needs_snapshot": true},
+    {"position": 5, "change_id": "alter_type:odl_payment:order_id", "reversible": true, "needs_snapshot": true},
+    {"position": 6, "change_id": "alter_type:odl_member:join_date", "reversible": true, "needs_snapshot": true},
+    {"position": 7, "change_id": "fix_orphan:odl_store:region_code", "reversible": false, "needs_snapshot": true},
+    {"position": 8, "change_id": "dedupe_rows:odl_inventory_snapshot:snapshot_date|store_code|product_code", "reversible": false, "needs_snapshot": true}
+  ],
+  "change_levels": {
+    "dedupe_rows:odl_inventory_snapshot:snapshot_date|store_code|product_code": ["break", 3],
+    "add_unique:odl_inventory_snapshot:snapshot_date|store_code|product_code": ["review", 3],
+    "add_fk:odl_payment:order_id": ["", 0],
+    "fix_orphan:odl_store:region_code": ["review", 1],
+    "alter_type:odl_member:join_date": ["", 0],
+    "alter_type:odl_member:points": ["", 0],
+    "alter_type:odl_payment:order_id": ["", 0],
+    "alter_type:odl_sale_order:order_id": ["review", 1],
+    "rename_column:odl_store:Store_Code": ["review", 3]
+  },
+  "case_change": "rename_column:odl_store:Store_Code",
+  "case_block": "M_CASE_PSEUDO_UNIQUE",
+  "case_columns": ["Store_Code"],
+  "pseudo_objects": ["DW-V-006", "RPT-007"],
+  "unknown_objects": ["DW-SQL-008", "DW-SQL-008", "DW-SQL-003"],
+  "criticality_levels": {
+    "DW-V-019": "break",
+    "MTR-010": "review",
+    "DW-SQL-008": "review"
+  }
+}
