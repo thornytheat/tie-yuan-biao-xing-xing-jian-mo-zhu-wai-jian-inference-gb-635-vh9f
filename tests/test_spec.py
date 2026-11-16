@@ -95,7 +95,7 @@ def test_spec_page_renders_footnotes_and_print_button(client_with_run):
     assert "data-action=\"print\"" in body
     assert "id=\"fn-1\"" in body
     assert "/api/spec/export.csv" in body
-    assert "戊 注" in body
+    assert "己 注" in body
 
 
 def test_empty_selection_raises(client):

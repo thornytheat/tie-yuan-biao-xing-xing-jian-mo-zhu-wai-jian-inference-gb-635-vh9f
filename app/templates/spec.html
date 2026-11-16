@@ -100,9 +100,38 @@
   </div>
 </section>
 
+{% if document.relationship_versions %}
+<section class="section">
+  <h2>丁 关系版本</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ document.relationship_versions | length }} 条关系 · 每条用了哪一版、为什么</caption>
+      <thead>
+        <tr><th>子表</th><th>子列</th><th>父表</th><th>政策</th><th>时点列</th><th class="num">命中</th><th class="num">兜底</th><th class="num">缺键</th><th>为什么</th></tr>
+      </thead>
+      <tbody>
+        {% for row in document.relationship_versions %}
+        <tr>
+          <td class="mono">{{ row.child_table }}</td>
+          <td class="mono">{{ row.child_column }}</td>
+          <td class="mono">{{ row.parent_table }}</td>
+          <td class="nowrap">{{ row.policy_label }}</td>
+          <td class="mono">{{ row.as_of_column or '—' }}</td>
+          <td class="num">{{ row.check.matched if row.check else '—' }}</td>
+          <td class="num">{{ row.check.fallback if row.check else '—' }}</td>
+          <td class="num">{{ row.check.missing if row.check else '—' }}</td>
+          <td>{{ row.why }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
 {% if document.other_columns %}
 <section class="section">
-  <h2>丁 未采纳列</h2>
+  <h2>戊 未采纳列</h2>
   <div class="wide">
     <table class="spec dense">
       <thead><tr><th>表</th><th>列</th><th>处置</th><th class="num">空值率</th><th>原因码</th></tr></thead>
@@ -123,7 +152,7 @@
 {% endif %}
 
 <section class="section">
-  <h2>戊 注</h2>
+  <h2>己 注</h2>
   <ol class="footnotes">
     {% for note in document.footnotes %}
     <li class="fn-item" id="fn-{{ loop.index }}">{{ note }}</li>

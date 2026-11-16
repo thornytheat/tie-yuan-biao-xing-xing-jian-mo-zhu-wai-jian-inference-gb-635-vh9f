@@ -223,6 +223,47 @@ REASONS = {
     "M_BAD_CHANGE": _r(
         "M_BAD_CHANGE", ERROR, "impact",
         "提交的变更不合法", "按变更类型与表列名重新提交"),
+    # ---- M8 双时间建模 ----
+    "T_CHAIN_RESTORED": _r(
+        "T_CHAIN_RESTORED", INFO, "temporal",
+        "冲突键按更正链版本化，当前库存恢复为事实表",
+        "业务键内按入库时间编版本，每个门店商品只留一个当前版"),
+    "T_VERSION_SUPERSEDED": _r(
+        "T_VERSION_SUPERSEDED", INFO, "temporal",
+        "历史更正版本全部保留在更正台账", "被取代不等于删除，时点查询与对账要用"),
+    "T_DUP_CORRECTION": _r(
+        "T_DUP_CORRECTION", INFO, "temporal",
+        "同一更正身份重复出现，未新增版本", "版本身份由业务键、双时间与取值决定，重跑幂等"),
+    "T_REL_AS_OF": _r(
+        "T_REL_AS_OF", INFO, "temporal",
+        "关系按业务发生时刻关联维度当时版本", "父维有版本链且子表有业务时刻列"),
+    "T_REL_CURRENT": _r(
+        "T_REL_CURRENT", INFO, "temporal",
+        "关系按当前版关联", "维度间引用或子表无业务时刻列时按当前版"),
+    "T_DIM_NO_VERSION": _r(
+        "T_DIM_NO_VERSION", WARN, "temporal",
+        "父维没有版本列，只能按当前版", "补 updated_at 后才能做时点关联"),
+    "T_DIM_BEFORE_FIRST": _r(
+        "T_DIM_BEFORE_FIRST", WARN, "temporal",
+        "事实时刻早于维度首版，按首版兜底", "维度导出不含历史版本，需上游补历史快照"),
+    "T_DIM_MISSING": _r(
+        "T_DIM_MISSING", ERROR, "temporal",
+        "维度里找不到该键", "先修参照完整性再谈时点关联"),
+    "T_RECON_BALANCED": _r(
+        "T_RECON_BALANCED", INFO, "temporal",
+        "规定时点账平衡：明细重投影与当前事实一致", "时点取最大入库时间时必须平衡"),
+    "T_RECON_DIFF": _r(
+        "T_RECON_DIFF", WARN, "temporal",
+        "规定时点与当前不一致，时点后有更正到达", "差异条目等于时点后到达的更正版本"),
+    "T_UPSTREAM_RECOMPUTED": _r(
+        "T_UPSTREAM_RECOMPUTED", INFO, "temporal",
+        "上游更新已并入，当前库存已重算", "重算是纯投影：同一台账必然算出同一当前表"),
+    "T_BAD_CORRECTION": _r(
+        "T_BAD_CORRECTION", ERROR, "temporal",
+        "提交的更正行不合法", "业务键、双时间与度量都要能归一"),
+    "T_BAD_AS_OF": _r(
+        "T_BAD_AS_OF", ERROR, "temporal",
+        "对账时点格式无法解析", "用 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS"),
 }
 
 

@@ -17,11 +17,12 @@ from .modules.m4_keys import handler as m4_handler
 from .modules.m5_batches import handler as m5_handler
 from .modules.m6_spec import handler as m6_handler
 from .modules.m7_impact import handler as m7_handler
+from .modules.m8_temporal import handler as m8_handler
 
 MODULES = (m1_handler, m2_handler, m3_handler, m4_handler, m5_handler, m6_handler,
-           m7_handler)
+           m7_handler, m8_handler)
 PAGE_PATHS = ("/", "/profile", "/keys", "/star", "/impact", "/batches", "/spec",
-              "/healthz")
+              "/temporal", "/healthz")
 
 
 def create_app(settings: config.Settings | None = None) -> FastAPI:

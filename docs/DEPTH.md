@@ -1,8 +1,8 @@
 # 深度登记 starmodel
 
-- 规模：中型（7 个功能模块，81 个文件，83 条测试）
-- 核心规则：候选主键 = 唯一率 1 且无空值；外键 = 包含度 ≥ 0.95 且父列是单列主键（推断边另加基数比区间）；星型按「含度量 + 外键数」定事实或维度，维度按可变更列占比定 SCD；影响评估按「引用方式 × 优先级 × 变更破坏性」定中断或核对，迁移顺序取依赖拓扑序。
-- 使用者与工作流：禾丰零售数仓组（7 人）导入贴源层 DDL + 样本 CSV + 编码导出件 → 逐列剖析 → 主键外键推断 → 星型建议 → 打印规格单 → 变更前评估下游影响与迁移顺序。
+- 规模：中型（8 个功能模块，94 个文件，96 条测试）
+- 核心规则：候选主键 = 唯一率 1 且无空值；外键 = 包含度 ≥ 0.95 且父列是单列主键（推断边另加基数比区间）；星型按「含度量 + 外键数」定事实或维度，维度按可变更列占比定 SCD；影响评估按「引用方式 × 优先级 × 变更破坏性」定中断或核对，迁移顺序取依赖拓扑序；双时间建模把业务生效时间与入库时间分列，更正按业务键编版本链，当前库存取（生效， 入库）最大者，关系版本按「父维有版本链 + 子表有业务时刻」定时点版或当前版。
+- 使用者与工作流：禾丰零售数仓组（7 人）导入贴源层 DDL + 样本 CSV + 编码导出件 → 逐列剖析 → 主键外键推断 → 星型建议 → 打印规格单 → 变更前评估下游影响与迁移顺序；库存快照同一业务日期多条更正时，用双时间页看更正链、当前库存与规定时点账。
 
 ## 功能模块
 
@@ -15,8 +15,9 @@
 | M5 版本与重跑 | 查历史、续跑、幂等重跑 | GET /api/batches | `app/modules/m5_batches/state.py` `app/modules/m5_batches/resume.py` `app/modules/m5_batches/service.py` | `tests/test_batches.py` |
 | M6 规格单导出 | 打印规格单，导出列规格与证据 | GET /api/spec | `app/modules/m6_spec/spec_out.py` `app/modules/m6_spec/csv_out.py` `app/modules/m6_spec/json_out.py` | `tests/test_spec.py` |
 | M7 建模影响评估 | 看变更影响面、迁移顺序与回滚提示，提交一条变更试算 | GET /api/impact · POST /api/impact/propose · GET /impact | `app/modules/m7_impact/impact.py` `app/modules/m7_impact/topology.py` `app/modules/m7_impact/rollback.py` | `tests/test_m7_impact.py` |
+| M8 双时间建模 | 看更正链与当前库存，按规定时点对账，提交一条更正试算重算 | GET /api/temporal · POST /api/temporal/propose · GET /temporal | `app/modules/m8_temporal/bitemporal.py` `app/modules/m8_temporal/relations.py` `app/modules/m8_temporal/service.py` | `tests/test_m8_temporal.py` |
 
-端到端：`tests/test_e2e.py`（6 条，脏样例一路走到规格单导出，并覆盖七个页面渲染）。
+端到端：`tests/test_e2e.py`（6 条，脏样例一路走到规格单导出，并覆盖八个页面渲染）。
 
 ## 陷阱登记
 
@@ -59,6 +60,12 @@
 
 M7 不进批次流水线：影响评估按请求现算，只读已落库结论与行级归一结果，不写批次、
 不新增阶段行（阶段计数仍是 5 段），因此重跑与连点都不改变批次内容。
+
+M8 同样不进批次流水线：更正链、当前库存、关系版本与规定时点账都按请求现算，
+是台账的纯投影——同一输入必然算出同一批版本，同一更正身份（业务键 + 双时间 +
+取值的摘要）重复出现只计重复、不新增版本；上游记录更新后随新批次或试算请求
+整体重算当前库存。TRAP-14 的冲突判定仍留在 M3/M4（首见行 + 冲突表），M8 在此
+之上给出版本化解决路径：冲突键编成更正链，当前库存恢复为事实表。
 
 ## 已知不覆盖
 

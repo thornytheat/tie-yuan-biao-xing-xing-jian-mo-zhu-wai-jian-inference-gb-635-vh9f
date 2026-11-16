@@ -7,7 +7,8 @@ from decimal import Decimal
 
 from fixtures import expected as X
 
-PAGES = ("/", "/profile", "/keys", "/star", "/impact", "/batches", "/spec")
+PAGES = ("/", "/profile", "/keys", "/star", "/temporal", "/impact", "/batches",
+         "/spec")
 
 
 def _sum_order_amount(sample_dir) -> Decimal:
@@ -48,8 +49,8 @@ def test_dirty_sample_end_to_end(client, sample_dir):
     assert len(spec["columns"]) == X.ADOPTED
 
 
-def test_seven_pages_render_with_batch_context(client_with_run):
-    """七个页面都渲染成功，且每页都带当前批次号。"""
+def test_eight_pages_render_with_batch_context(client_with_run):
+    """八个页面都渲染成功，且每页都带当前批次号。"""
     listed = client_with_run.get("/api/batches").json()["rows"]
     batch_id = listed[0]["batch_id"]
     for path in PAGES:

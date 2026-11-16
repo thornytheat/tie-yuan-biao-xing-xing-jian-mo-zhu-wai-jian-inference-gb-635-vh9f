@@ -22,6 +22,7 @@ NAV = (
     ("/profile", "列剖析", "profile"),
     ("/keys", "键推断", "keys"),
     ("/star", "星型建议", "star"),
+    ("/temporal", "双时间", "temporal"),
     ("/impact", "影响评估", "impact"),
     ("/batches", "版本历史", "batches"),
     ("/spec", "规格单", "spec"),

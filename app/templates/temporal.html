@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block head_meta %}{% if payload and payload.summary %}版本 {{ payload.summary.versions }} · 当前 {{ payload.summary.current_rows }} 行{% else %}双时间{% endif %}{% endblock %}
+
+{% block main %}
+{% if payload %}
+{% if payload.temporal %}
+<section class="section">
+  <h2>总览</h2>
+  <div class="totalbar">
+    <span>版本 <b>{{ payload.summary.versions }}</b></span>
+    <span>业务键 <b>{{ payload.summary.business_keys }}</b></span>
+    <span>历史更正 <b>{{ payload.summary.superseded }}</b></span>
+    <span>当前库存 <b>{{ payload.summary.current_rows }}</b> 行</span>
+    <span>时点账 <b>{{ '平' if payload.summary.balanced else '差' }}</b></span>
+    <span>恢复 <b>{{ payload.temporal.restored.role | role }}</b></span>
+  </div>
+  <table class="spec dense">
+    <thead><tr><th>账</th><th class="num">总数</th><th>构成</th><th>自洽</th></tr></thead>
+    <tbody>
+      {% for row in payload.accounts %}
+      <tr>
+        <td>{{ row.id }} {{ row.name }}</td>
+        <td class="num">{{ row.expected }}</td>
+        <td class="mono">{{ row.parts }}</td>
+        <td><span class="flag" data-tone="{{ 'ok' if row.balanced else 'bad' }}">{{ '平' if row.balanced else '差' }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="hint">业务生效时间列 <b>{{ payload.temporal.effective_column }}</b> 与入库时间列
+    <b>{{ payload.temporal.ingest_column }}</b> 分列；当前库存粒度
+    <b>{{ payload.temporal.grain_columns | join('、') }}</b>，每个门店商品恰好一行。</p>
+</section>
+
+<section class="section">
+  <h2>更正台账</h2>
+  <div class="wide">
+    <table class="spec" data-sortable>
+      <caption>{{ payload.versions | length }} 个版本 · 全部历史更正保留</caption>
+      <thead>
+        <tr><th>业务键</th><th class="num">版本</th><th>业务生效</th><th>入库</th><th class="num">在手数</th><th>当前</th><th class="num">样本行</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.versions %}
+        <tr>
+          <td class="mono">{{ row.key_text }}</td>
+          <td class="num">v{{ row.version_no }}</td>
+          <td class="mono">{{ row.effective }}</td>
+          <td class="mono">{{ row.ingest }}</td>
+          <td class="num">{{ row.measure }}</td>
+          <td><span class="flag" data-tone="{{ 'ok' if row.is_current else 'info' }}">{{ '当前' if row.is_current else '历史' }}</span></td>
+          <td class="num">{{ row.line_no if row.line_no else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>当前库存</h2>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ payload.current | length }} 行 · 每个门店商品一个有效版本</caption>
+      <thead>
+        <tr><th>门店</th><th>商品</th><th>业务生效</th><th>入库</th><th class="num">在手数</th><th>来源版本</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.current %}
+        <tr>
+          <td class="mono">{{ row.grain[payload.temporal.grain_columns[0]] }}</td>
+          <td class="mono">{{ row.grain[payload.temporal.grain_columns[1]] }}</td>
+          <td class="mono">{{ row.effective }}</td>
+          <td class="mono">{{ row.ingest }}</td>
+          <td class="num">{{ row.measure }}</td>
+          <td class="mono">{{ row.key_text }} v{{ row.version_no }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>规定时点账</h2>
+  <form class="toolbar" method="get" action="/temporal">
+    <label class="field">对账时点
+      <input name="as_of" value="{{ payload.as_of }}" placeholder="YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS">
+    </label>
+    <button type="submit">对账</button>
+  </form>
+  <div class="wide">
+    <table class="spec dense">
+      <caption>{{ payload.as_of }}{{ '（现在）' if payload.as_of_now else '' }} · 一致 {{ payload.reconcile.matched }} · 差异 {{ payload.reconcile.diff }}</caption>
+      <thead>
+        <tr><th>粒度键</th><th class="num">时点重算</th><th class="num">当前事实</th><th class="num">差</th><th class="num">时点后更正</th><th>结论</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.reconcile.rows %}
+        <tr>
+          <td class="mono">{{ row.grain_text }}</td>
+          <td class="num">{{ row.expected if row.expected is not none else '—' }}</td>
+          <td class="num">{{ row.actual if row.actual is not none else '—' }}</td>
+          <td class="num">{{ row.delta if row.delta is not none else '—' }}</td>
+          <td class="num">{{ row.corrections_after }}</td>
+          <td><span class="flag" data-tone="{{ 'ok' if row.status == 'matched' else 'warn' }}">{{ '一致' if row.status == 'matched' else '差异' }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>上游更新重算</h2>
+  <div class="toolbar">
+    <label class="field">业务生效
+      <input name="snapshot_date" value="2026-11-12">
+    </label>
+    <label class="field">门店
+      <input name="store_code" value="0012">
+    </label>
+    <label class="field">商品
+      <input name="product_code" value="00021">
+    </label>
+    <label class="field">在手数
+      <input name="on_hand_qty" value="90">
+    </label>
+    <label class="field">入库时间
+      <input name="updated_at" value="2026-11-12 08:00:00">
+    </label>
+    <button type="button" data-action="propose">并入重算</button>
+  </div>
+  <p class="notice" data-notice hidden></p>
+  <p class="hint" data-propose hidden></p>
+</section>
+{% endif %}
+
+<section class="section">
+  <h2>关系版本</h2>
+  <div class="wide">
+    <table class="spec" data-sortable>
+      <caption>{{ payload.relationships | length }} 条关系 · 每条用了哪一版、为什么</caption>
+      <thead>
+        <tr><th>子表</th><th>父表</th><th>政策</th><th>时点列</th><th class="num">命中</th><th class="num">兜底</th><th class="num">缺键</th><th>为什么</th></tr>
+      </thead>
+      <tbody>
+        {% for row in payload.relationships %}
+        <tr>
+          <td class="mono">{{ row.child_table }}.{{ row.child_column }}</td>
+          <td class="mono">{{ row.parent_table }}</td>
+          <td><span class="flag" data-tone="{{ 'ok' if row.policy == 'as_of' else 'info' }}">{{ row.policy_label }}</span></td>
+          <td class="mono">{{ row.as_of_column or '—' }}</td>
+          <td class="num">{{ row.check.matched if row.check else '—' }}</td>
+          <td class="num">{{ row.check.fallback if row.check else '—' }}</td>
+          <td class="num">{{ row.check.missing if row.check else '—' }}</td>
+          <td>{{ row.why }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>注</h2>
+  <ol class="footnotes">
+    {% for note in payload.notes %}
+    <li class="fn-item">{{ note }}</li>
+    {% endfor %}
+  </ol>
+</section>
+{% else %}
+<p class="empty">还没有批次。</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/temporal.js"></script>
+{% endblock %}

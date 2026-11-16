@@ -31,6 +31,7 @@ STAGE_LABELS = {
     "keys": "键推断",
     "spec": "规格单",
     "impact": "影响评估",
+    "temporal": "双时间建模",
 }
 
 # 编码回退链：gb18030 是 gbk/gb2312 的超集，放在最后兜底
@@ -69,6 +70,13 @@ REJECT_UNPARSABLE_RATE = Decimal("0.5")
 FACT_MIN_FOREIGN_KEYS = 2
 METRIC_UNIQUE_RATE_MAX = Decimal("0.9")
 SCD2_CHANGE_RATIO = Decimal("0.50")
+
+# M8 双时间建模：业务生效时间与入库时间分列，各管各的
+TEMPORAL_TABLE = "odl_inventory_snapshot"      # 双时间事实表（库存快照）
+TEMPORAL_EFFECTIVE_COLUMN = "snapshot_date"    # 业务生效时间列
+TEMPORAL_INGEST_COLUMN = "updated_at"          # 入库时间列
+TEMPORAL_MEASURE_COLUMN = "on_hand_qty"        # 度量列
+TEMPORAL_DAY_END = "23:59:59"                  # 快照生效时刻按日末对齐（日终盘点）
 
 # 类型归一宽度：同名同义列跨表收敛时取最宽
 TYPE_WIDTH = {

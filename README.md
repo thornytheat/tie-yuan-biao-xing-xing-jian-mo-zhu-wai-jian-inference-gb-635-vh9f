@@ -13,6 +13,9 @@
 - 隔离区与冲突表可导出 CSV，运行清单可导出 JSON
 - 同输入重跑幂等；四账（列 / 行 / 引用 / 对象）自洽
 - 变更前评估：下游 SQL 与报表影响面、迁移拓扑序、回滚提示与阻断项
+- 双时间建模：业务生效时间与入库时间分列，库存更正链全量保留、当前库存
+  每店品一个有效版本并恢复为事实表，订单与库存按各自发生时刻关联当时门店，
+  规定时点对账，同一更正重跑不新增版本
 
 ## 模块
 
@@ -25,6 +28,7 @@
 | M5 版本与重跑 | 批次历史、批次详情、续跑 | `GET /api/batches` `POST /api/batches/{id}/resume` |
 | M6 规格单导出 | 规格单、列规格 CSV、证据 CSV、清单 JSON | `GET /api/spec` |
 | M7 建模影响评估 | 变更影响面、迁移顺序、回滚提示、单条变更试算 | `GET /api/impact` `POST /api/impact/propose` |
+| M8 双时间建模 | 更正链、当前库存、关系版本、规定时点账、上游更新试算 | `GET /api/temporal` `POST /api/temporal/propose` |
 
 ## 核心规则
 
@@ -36,6 +40,10 @@
 6. 影响级别 = 引用方式 × 优先级 × 变更破坏性：P1 精确引用加破坏性变更判中断，整表引用一律核对。
 7. 唯一性先定空值规则：含空值的键免检（与 UNIQUE 一致）或全算，两者结论相反就阻断。
 8. 迁移顺序按依赖拓扑排：清洗 → 类型 → 改名 → 键 → 引用；成环整组阻断。
+9. 业务生效时间与入库时间分列：更正链按业务键分组、组内按入库时间编版本，
+   版本身份由业务键 + 双时间 + 取值决定，同一更正重跑不新增版本。
+10. 当前库存 = 每个门店商品取（业务生效时间， 入库时间）最大者；事实→维度关系
+    父维有版本链就按子表业务时刻取当时版本，否则按当前版，规格单逐条写明。
 
 数字化定义与字段含义见 `docs/DATA-DICTIONARY.md`，陷阱与测试映射见 `docs/DEPTH.md`。
 
@@ -70,6 +78,7 @@ pytest -q
 | `/profile` | 列剖析 |
 | `/keys` | 键推断 |
 | `/star` | 星型建议 |
+| `/temporal` | 双时间建模 |
 | `/batches` | 版本历史 |
 | `/impact` | 影响评估 |
 | `/spec` | 规格单（可打印） |
@@ -77,7 +86,7 @@ pytest -q
 ## 目录
 
 ```text
-app/                 main/config/errors/reasons/manifest/store/web + 七个功能模块
+app/                 main/config/errors/reasons/manifest/store/web + 八个功能模块
 app/templates/       base + 7 页
 app/static/          theme/layout/components/print.css + 4 个 js
 docs/                DEPTH.md  DATA-DICTIONARY.md

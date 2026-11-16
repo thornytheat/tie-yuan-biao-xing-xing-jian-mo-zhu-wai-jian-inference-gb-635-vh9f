@@ -25,7 +25,8 @@ def build(store, batch_id: str) -> dict:
 def to_payload(document: dict) -> dict:
     """接口返回：去掉模板专用字段，只留数据。"""
     fields = ["title", "accounts", "account_rows", "columns", "objects",
-              "facts", "dims", "pending", "footnotes", "total_rows", "tables"]
+              "facts", "dims", "pending", "footnotes", "total_rows", "tables",
+              "relationship_versions"]
     payload = {field: document.get(field) for field in fields}
     payload["keys"] = document.get("key_rows")
     payload["batch_id"] = document["batch"]["batch_id"]
